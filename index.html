@@ -1,0 +1,681 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Étude du Mouvement de Rotation autour d'un Axe Fixe</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Arial', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+            overflow: hidden;
+        }
+        
+        header {
+            background: #2c3e50;
+            color: white;
+            padding: 20px;
+            text-align: center;
+        }
+        
+        h1 {
+            font-size: 1.8em;
+            margin-bottom: 10px;
+        }
+        
+        .content {
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            gap: 20px;
+            padding: 20px;
+            min-height: 700px;
+        }
+        
+        .animation-section {
+            background: #f8f9fa;
+            border-radius: 10px;
+            padding: 20px;
+            border: 2px solid #e9ecef;
+            position: relative;
+        }
+        
+        .controls-section {
+            background: #f8f9fa;
+            border-radius: 10px;
+            padding: 20px;
+            border: 2px solid #e9ecef;
+        }
+        
+        .canvas-container {
+            position: relative;
+            width: 100%;
+            height: 500px;
+            background: white;
+            border: 2px solid #34495e;
+            border-radius: 10px;
+            overflow: hidden;
+        }
+        
+        canvas {
+            width: 100%;
+            height: 100%;
+        }
+        
+        .control-group {
+            margin-bottom: 20px;
+            padding: 15px;
+            background: white;
+            border-radius: 8px;
+            border-left: 4px solid #3498db;
+        }
+        
+        .control-group h3 {
+            color: #2c3e50;
+            margin-bottom: 15px;
+            font-size: 1.1em;
+            border-bottom: 2px solid #ecf0f1;
+            padding-bottom: 5px;
+        }
+        
+        .slider-container {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 10px;
+        }
+        
+        .slider-container label {
+            min-width: 180px;
+            font-weight: bold;
+            color: #34495e;
+            font-size: 0.9em;
+        }
+        
+        input[type="range"] {
+            flex: 1;
+            height: 6px;
+            background: #ddd;
+            border-radius: 3px;
+            outline: none;
+        }
+        
+        .value-display {
+            min-width: 60px;
+            text-align: center;
+            font-weight: bold;
+            color: #e74c3c;
+            background: #f8f9fa;
+            padding: 2px 6px;
+            border-radius: 4px;
+            border: 1px solid #ddd;
+            font-size: 0.9em;
+        }
+        
+        .buttons {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 8px;
+            margin-top: 15px;
+        }
+        
+        button {
+            padding: 10px;
+            border: none;
+            border-radius: 6px;
+            font-size: 0.9em;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .start-btn { background: #27ae60; color: white; }
+        .start-btn:hover { background: #219a52; }
+        
+        .stop-btn { background: #e74c3c; color: white; }
+        .stop-btn:hover { background: #c0392b; }
+        
+        .reset-btn { background: #3498db; color: white; }
+        .reset-btn:hover { background: #2980b9; }
+        
+        .data-panel {
+            background: #2c3e50;
+            color: white;
+            padding: 15px;
+            border-radius: 8px;
+            margin-top: 15px;
+        }
+        
+        .data-row {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 8px;
+            font-family: 'Courier New', monospace;
+            font-size: 0.9em;
+            padding: 3px 0;
+            border-bottom: 1px solid #34495e;
+        }
+        
+        footer {
+            text-align: center;
+            padding: 15px;
+            background: #34495e;
+            color: white;
+            font-size: 0.9em;
+        }
+
+        .system-info {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            background: rgba(255,255,255,0.95);
+            padding: 15px;
+            border-radius: 8px;
+            border: 2px solid #3498db;
+            font-family: 'Courier New', monospace;
+            font-size: 0.9em;
+        }
+
+        .distance-controls {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            margin-top: 10px;
+        }
+
+        .distance-control {
+            background: #ecf0f1;
+            padding: 10px;
+            border-radius: 6px;
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>ÉTUDE DU MOUVEMENT DE ROTATION AUTOUR D'UN AXE FIXE</h1>
+            <div class="subtitle">Système tambour-masse avec fil enroulé</div>
+        </header>
+        
+        <div class="content">
+            <div class="animation-section">
+                <h2>Dispositif Expérimental</h2>
+                <div class="canvas-container">
+                    <canvas id="rotationCanvas"></canvas>
+                    <div class="system-info">
+                        <strong>ÉTAT DU SYSTÈME:</strong><br>
+                        Hauteur chute: <span id="currentHeight">0.00</span> m<br>
+                        Longueur fil déroulé: <span id="currentFil">0.00</span> m<br>
+                        Tours complets: <span id="currentTours">0</span>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="controls-section">
+                <h2>Paramètres de l'Étude</h2>
+                
+                <div class="control-group">
+                    <h3>📊 Masses du Système</h3>
+                    
+                    <div class="slider-container">
+                        <label for="massMSlider">Masse M (kg):</label>
+                        <input type="range" id="massMSlider" min="0.1" max="2" value="0.5" step="0.1">
+                        <span class="value-display" id="massMValue">0.5</span>
+                    </div>
+                    
+                    <div class="slider-container">
+                        <label for="tambourMassSlider">Masse tambour (kg):</label>
+                        <input type="range" id="tambourMassSlider" min="0.1" max="3" value="1.0" step="0.1">
+                        <span class="value-display" id="tambourMassValue">1.0</span>
+                    </div>
+                </div>
+                
+                <div class="control-group">
+                    <h3>📏 Configuration Géométrique</h3>
+                    
+                    <div class="distance-controls">
+                        <div class="distance-control">
+                            <h4>Distance r₁ (m)</h4>
+                            <div class="slider-container">
+                                <input type="range" id="distanceLeftSlider" min="0.05" max="0.5" value="0.2" step="0.05">
+                                <span class="value-display" id="distanceLeftValue">0.20</span>
+                            </div>
+                        </div>
+                        
+                        <div class="distance-control">
+                            <h4>Distance r₂ (m)</h4>
+                            <div class="slider-container">
+                                <input type="range" id="distanceRightSlider" min="0.05" max="0.5" value="0.2" step="0.05">
+                                <span class="value-display" id="distanceRightValue">0.20</span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="slider-container">
+                        <label for="rayonTambourSlider">Rayon tambour R (m):</label>
+                        <input type="range" id="rayonTambourSlider" min="0.02" max="0.1" value="0.05" step="0.01">
+                        <span class="value-display" id="rayonTambourValue">0.05</span>
+                    </div>
+                </div>
+                
+                <div class="control-group">
+                    <h3>⚖️ Masse en Chute</h3>
+                    
+                    <div class="slider-container">
+                        <label for="massChargeSlider">Masse m (kg):</label>
+                        <input type="range" id="massChargeSlider" min="0.01" max="0.5" value="0.1" step="0.01">
+                        <span class="value-display" id="massChargeValue">0.1</span>
+                    </div>
+                    
+                    <div class="slider-container">
+                        <label for="hauteurSlider">Hauteur chute (m):</label>
+                        <input type="range" id="hauteurSlider" min="0.5" max="3.0" value="1.5" step="0.1">
+                        <span class="value-display" id="hauteurValue">1.5</span>
+                    </div>
+                </div>
+                
+                <div class="control-group">
+                    <h3>🎮 Lancement Expérience</h3>
+                    <div class="buttons">
+                        <button class="start-btn" onclick="startExperiment()">▶ Démarrer</button>
+                        <button class="stop-btn" onclick="stopExperiment()">⏸ Pause</button>
+                        <button class="reset-btn" onclick="resetExperiment()">↺ Reset</button>
+                    </div>
+                </div>
+                
+                <div class="data-panel">
+                    <h3>📈 Mesures en Temps Réel</h3>
+                    <div class="data-row">
+                        <span>Temps écoulé:</span>
+                        <span id="timeValue">0.00 s</span>
+                    </div>
+                    <div class="data-row">
+                        <span>Vitesse angulaire ω:</span>
+                        <span id="velocityValue">0.000 rad/s</span>
+                    </div>
+                    <div class="data-row">
+                        <span>Accélération ang. α:</span>
+                        <span id="accelValue">2.943 rad/s²</span>
+                    </div>
+                    <div class="data-row">
+                        <span>Moment d'inertie I:</span>
+                        <span id="inertiaValue">0.026 kg·m²</span>
+                    </div>
+                    <div class="data-row">
+                        <span>Angle θ:</span>
+                        <span id="angleValue">0°</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <footer>
+            <p>Étude physique du mouvement de rotation autour d'un axe fixe - Système réel avec fil enroulé</p>
+        </footer>
+    </div>
+
+    <script>
+        // Variables globales
+        let canvas, ctx;
+        let animationId;
+        let isExperimentRunning = false;
+        let experimentStartTime = 0;
+        let totalFilDeroule = 0;
+        
+        // Paramètres du système réel
+        let params = {
+            massM: 0.5,          // masse de chaque masse M (kg)
+            tambourMass: 1.0,    // masse du tambour (kg)
+            distanceLeft: 0.2,   // distance masse gauche (m)
+            distanceRight: 0.2,  // distance masse droite (m)
+            rayonTambour: 0.05,  // rayon du tambour (m) - pour le fil
+            massCharge: 0.1,     // masse m en chute (kg)
+            hauteurChute: 1.5,   // hauteur de chute (m)
+            angle: 0,
+            angularVelocity: 0,
+            time: 0,
+            hauteurActuelle: 0,
+            toursComplets: 0
+        };
+        
+        // Constantes
+        const g = 9.81; // m/s²
+        
+        function init() {
+            canvas = document.getElementById('rotationCanvas');
+            ctx = canvas.getContext('2d');
+            
+            resizeCanvas();
+            window.addEventListener('resize', resizeCanvas);
+            
+            initSliders();
+            updateCalculations();
+            draw();
+        }
+        
+        function resizeCanvas() {
+            const container = canvas.parentElement;
+            canvas.width = container.clientWidth;
+            canvas.height = container.clientHeight;
+            draw();
+        }
+        
+        function initSliders() {
+            // Masse M
+            document.getElementById('massMSlider').addEventListener('input', function() {
+                params.massM = parseFloat(this.value);
+                document.getElementById('massMValue').textContent = this.value;
+                updateCalculations();
+            });
+            
+            // Masse tambour
+            document.getElementById('tambourMassSlider').addEventListener('input', function() {
+                params.tambourMass = parseFloat(this.value);
+                document.getElementById('tambourMassValue').textContent = this.value;
+                updateCalculations();
+            });
+            
+            // Distance gauche
+            document.getElementById('distanceLeftSlider').addEventListener('input', function() {
+                params.distanceLeft = parseFloat(this.value);
+                document.getElementById('distanceLeftValue').textContent = this.value.toFixed(2);
+                updateCalculations();
+            });
+            
+            // Distance droite
+            document.getElementById('distanceRightSlider').addEventListener('input', function() {
+                params.distanceRight = parseFloat(this.value);
+                document.getElementById('distanceRightValue').textContent = this.value.toFixed(2);
+                updateCalculations();
+            });
+            
+            // Rayon tambour
+            document.getElementById('rayonTambourSlider').addEventListener('input', function() {
+                params.rayonTambour = parseFloat(this.value);
+                document.getElementById('rayonTambourValue').textContent = this.value;
+                updateCalculations();
+            });
+            
+            // Masse charge
+            document.getElementById('massChargeSlider').addEventListener('input', function() {
+                params.massCharge = parseFloat(this.value);
+                document.getElementById('massChargeValue').textContent = this.value;
+                updateCalculations();
+            });
+            
+            // Hauteur chute
+            document.getElementById('hauteurSlider').addEventListener('input', function() {
+                params.hauteurChute = parseFloat(this.value);
+                document.getElementById('hauteurValue').textContent = this.value;
+                resetExperiment();
+            });
+        }
+        
+        function updateCalculations() {
+            // Moment d'inertie du tambour seul (cylindre)
+            const I_tambour = 0.5 * params.tambourMass * Math.pow(params.rayonTambour, 2);
+            
+            // Moment d'inertie des masses
+            const I_masses = params.massM * Math.pow(params.distanceLeft, 2) + 
+                           params.massM * Math.pow(params.distanceRight, 2);
+            
+            // Moment d'inertie total
+            const I_total = I_tambour + I_masses;
+            
+            // Accélération angulaire théorique
+            const alpha = (params.massCharge * g * params.rayonTambour) / 
+                         (I_total + params.massCharge * Math.pow(params.rayonTambour, 2));
+            
+            // Mise à jour de l'affichage
+            document.getElementById('inertiaValue').textContent = I_total.toFixed(3) + ' kg·m²';
+            document.getElementById('accelValue').textContent = alpha.toFixed(3) + ' rad/s²';
+        }
+        
+        function draw() {
+            const width = canvas.width;
+            const height = canvas.height;
+            const centerX = width / 2;
+            const centerY = height / 2;
+            
+            ctx.clearRect(0, 0, width, height);
+            
+            // Dessiner le support fixe
+            drawSupportFixe(centerX, centerY);
+            
+            ctx.save();
+            ctx.translate(centerX, centerY);
+            ctx.rotate(params.angle);
+            
+            // Dessiner le système en rotation
+            drawSystemeRotation();
+            
+            ctx.restore();
+            
+            // Dessiner la masse en chute (toujours verticale)
+            drawMasseChute(centerX, centerY);
+            
+            // Dessiner les annotations
+            drawAnnotations(centerX, centerY);
+        }
+        
+        function drawSupportFixe(centerX, centerY) {
+            // Support mural fixe
+            ctx.fillStyle = '#7f8c8d';
+            ctx.fillRect(centerX - 300, centerY - 200, 600, 25);
+            
+            // Support du tambour fixe
+            ctx.fillStyle = '#95a5a6';
+            ctx.fillRect(centerX - 25, centerY - 200, 50, 200);
+            
+            // Axe de rotation FIXE (ne tourne pas)
+            ctx.fillStyle = '#e74c3c';
+            ctx.beginPath();
+            ctx.arc(centerX, centerY, 8, 0, 2 * Math.PI);
+            ctx.fill();
+        }
+        
+        function drawSystemeRotation() {
+            const scale = 200; // échelle pour l'affichage
+            const R_display = params.rayonTambour * scale;
+            const r_left_display = params.distanceLeft * scale;
+            const r_right_display = params.distanceRight * scale;
+            
+            // Tambour (vue de face) - TOURNE
+            ctx.strokeStyle = '#3498db';
+            ctx.lineWidth = 4;
+            ctx.beginPath();
+            ctx.arc(0, 0, R_display, 0, 2 * Math.PI);
+            ctx.stroke();
+            
+            // Tige support des masses - TOURNE
+            ctx.strokeStyle = '#2c3e50';
+            ctx.lineWidth = 3;
+            ctx.beginPath();
+            ctx.moveTo(-r_left_display - 20, 0);
+            ctx.lineTo(r_right_display + 20, 0);
+            ctx.stroke();
+            
+            // Masse M gauche - TOURNE
+            drawMasseM(-r_left_display, 0, params.massM, '#e74c3c');
+            
+            // Masse M droite - TOURNE
+            drawMasseM(r_right_display, 0, params.massM, '#3498db');
+            
+            // Point d'attache du fil - TOURNE avec le tambour
+            ctx.fillStyle = '#e74c3c';
+            ctx.beginPath();
+            ctx.arc(R_display, 0, 5, 0, 2 * Math.PI);
+            ctx.fill();
+        }
+        
+        function drawMasseM(x, y, mass, color) {
+            const size = 15 + mass * 10;
+            
+            // Masse cylindrique
+            ctx.fillStyle = color;
+            ctx.strokeStyle = '#2c3e50';
+            ctx.lineWidth = 2;
+            
+            ctx.beginPath();
+            ctx.arc(x, y, size/2, 0, 2 * Math.PI);
+            ctx.fill();
+            ctx.stroke();
+            
+            // Texte M
+            ctx.fillStyle = 'white';
+            ctx.font = 'bold 12px Arial';
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            ctx.fillText('M', x, y);
+        }
+        
+        function drawMasseChute(centerX, centerY) {
+            const scale = 200;
+            const R_display = params.rayonTambour * scale;
+            
+            // Position du point d'attache (qui tourne)
+            const attachX = centerX + R_display * Math.cos(params.angle);
+            const attachY = centerY + R_display * Math.sin(params.angle);
+            
+            // Longueur du fil déroulé (en pixels)
+            const filLength = params.hauteurActuelle * 100; // échelle pour l'affichage
+            
+            // Fil (toujours vertical vers le bas)
+            ctx.strokeStyle = '#7f8c8d';
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            ctx.moveTo(attachX, attachY);
+            ctx.lineTo(attachX, attachY + filLength);
+            ctx.stroke();
+            
+            // Masse charge qui descend
+            const chargeSize = 20 + params.massCharge * 30;
+            ctx.fillStyle = '#9b59b6';
+            ctx.fillRect(attachX - chargeSize/2, attachY + filLength, chargeSize, chargeSize);
+            
+            // Texte masse charge
+            ctx.fillStyle = '#2c3e50';
+            ctx.font = '12px Arial';
+            ctx.textAlign = 'center';
+            ctx.fillText('m = ' + params.massCharge + 'kg', attachX, attachY + filLength + chargeSize + 15);
+        }
+        
+        function drawAnnotations(centerX, centerY) {
+            ctx.fillStyle = '#2c3e50';
+            ctx.font = '12px Arial';
+            ctx.textAlign = 'left';
+            
+            const infoX = centerX - 280;
+            const infoY = centerY + 120;
+            
+            ctx.fillText('Étude de la rotation:', infoX, infoY);
+            ctx.fillText('• Fil se déroule du tambour', infoX, infoY + 20);
+            ctx.fillText('• Masse m descend sous gravity', infoX, infoY + 40);
+            ctx.fillText('• Tambour + masses tournent', infoX, infoY + 60);
+            ctx.fillText('• Axe de rotation fixe', infoX, infoY + 80);
+        }
+        
+        function animate() {
+            if (!isExperimentRunning) return;
+            
+            const now = Date.now();
+            const deltaTime = (now - params.time) / 1000;
+            params.time = now;
+            
+            // Calcul de l'accélération angulaire
+            const I_tambour = 0.5 * params.tambourMass * Math.pow(params.rayonTambour, 2);
+            const I_masses = params.massM * Math.pow(params.distanceLeft, 2) + 
+                           params.massM * Math.pow(params.distanceRight, 2);
+            const I_total = I_tambour + I_masses;
+            
+            const alpha = (params.massCharge * g * params.rayonTambour) / 
+                         (I_total + params.massCharge * Math.pow(params.rayonTambour, 2));
+            
+            // Mise à jour de la vitesse et de l'angle
+            params.angularVelocity += alpha * deltaTime;
+            params.angle += params.angularVelocity * deltaTime;
+            
+            // Calcul de la hauteur de chute (fil qui se déroule)
+            params.hauteurActuelle = params.angle * params.rayonTambour;
+            totalFilDeroule = params.hauteurActuelle;
+            
+            // Compter les tours complets
+            params.toursComplets = Math.floor(params.angle / (2 * Math.PI));
+            
+            // Mise à jour de l'affichage
+            const tempsEcoule = (now - experimentStartTime) / 1000;
+            document.getElementById('timeValue').textContent = tempsEcoule.toFixed(2) + ' s';
+            document.getElementById('velocityValue').textContent = params.angularVelocity.toFixed(3) + ' rad/s';
+            document.getElementById('angleValue').textContent = (params.angle * 180/Math.PI).toFixed(1) + '°';
+            
+            document.getElementById('currentHeight').textContent = params.hauteurActuelle.toFixed(2);
+            document.getElementById('currentFil').textContent = totalFilDeroule.toFixed(2);
+            document.getElementById('currentTours').textContent = params.toursComplets;
+            
+            // Arrêter si la masse touche le sol
+            if (params.hauteurActuelle >= params.hauteurChute) {
+                stopExperiment();
+            }
+            
+            draw();
+            animationId = requestAnimationFrame(animate);
+        }
+        
+        function startExperiment() {
+            if (!isExperimentRunning) {
+                isExperimentRunning = true;
+                experimentStartTime = Date.now();
+                params.time = Date.now();
+                params.hauteurActuelle = 0;
+                totalFilDeroule = 0;
+                params.toursComplets = 0;
+                animate();
+            }
+        }
+        
+        function stopExperiment() {
+            isExperimentRunning = false;
+            if (animationId) cancelAnimationFrame(animationId);
+        }
+        
+        function resetExperiment() {
+            stopExperiment();
+            params.angle = 0;
+            params.angularVelocity = 0;
+            params.time = 0;
+            params.hauteurActuelle = 0;
+            totalFilDeroule = 0;
+            params.toursComplets = 0;
+            experimentStartTime = 0;
+            
+            document.getElementById('timeValue').textContent = '0.00 s';
+            document.getElementById('velocityValue').textContent = '0.000 rad/s';
+            document.getElementById('angleValue').textContent = '0°';
+            document.getElementById('currentHeight').textContent = '0.00';
+            document.getElementById('currentFil').textContent = '0.00';
+            document.getElementById('currentTours').textContent = '0';
+            
+            updateCalculations();
+            draw();
+        }
+        
+        window.onload = init;
+    </script>
+</body>
+</html>
